@@ -47,21 +47,32 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	session = parsed.String()
 	token := r.Header.Get("authorization")
+	var hashedToken string
 	isWriter := false
 
 	if token != "" {
-		if !authenticate(r.Context(), w, token) {
-			return
-		}
-
-		_, ok := hubs[session]
-		if ok {
-			http.Error(w, "writer already exists", http.StatusConflict)
-			return
-		}
-
 		if len(hubs) >= maxHubs {
 			http.Error(w, "max hubs reached", http.StatusServiceUnavailable)
+			return
+		}
+
+		exists := "writer already exists"
+
+		if _, ok := hubs[session]; ok {
+			http.Error(w, exists, http.StatusConflict)
+			return
+		}
+
+		hashedToken = hashToken(token)
+
+		for _, hub := range hubs {
+			if hub.writer != nil && hub.writer.token == hashedToken {
+				http.Error(w, exists, http.StatusConflict)
+				return
+			}
+		}
+
+		if !authenticate(r.Context(), w, hashedToken) {
 			return
 		}
 
@@ -79,6 +90,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if hashedToken == "" {
+		hashedToken = hashToken(token)
+	}
+
 	log.Printf("serving session %s", session)
-	serveWs(hub, w, r, isWriter)
+	serveWs(hub, w, r, isWriter, hashedToken)
 }

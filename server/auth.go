@@ -12,13 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func authenticate(ctx context.Context, w http.ResponseWriter, token string) bool {
-	parsed, err := uuid.Parse(token)
-	if err != nil {
-		http.Error(w, "invalid token", http.StatusBadRequest)
-		return false
-	}
-
+func authenticate(ctx context.Context, w http.ResponseWriter, hashedToken string) bool {
 	conn, err := getDb(ctx)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to get db connection: %v", err), http.StatusInternalServerError)
@@ -28,8 +22,7 @@ func authenticate(ctx context.Context, w http.ResponseWriter, token string) bool
 	defer closeDb(conn, ctx)
 
 	queries := db.New(conn)
-	hashed := fmt.Sprintf("%x", sha256.Sum256([]byte(parsed.String())))
-	_, err = queries.GetToken(ctx, hashed)
+	_, err = queries.GetToken(ctx, hashedToken)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -43,4 +36,10 @@ func authenticate(ctx context.Context, w http.ResponseWriter, token string) bool
 	}
 
 	return true
+}
+
+func hashToken(token string) string {
+	parsed, _ := uuid.Parse(token)
+
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(parsed.String())))
 }
