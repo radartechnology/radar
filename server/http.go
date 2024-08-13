@@ -45,9 +45,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var hashedToken string
+
 	session = parsed.String()
 	token := r.Header.Get("authorization")
-	var hashedToken string
+
 	isWriter := false
 
 	if token != "" {
