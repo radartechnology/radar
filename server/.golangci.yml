@@ -1,0 +1,29 @@
+linters:
+  enable-all: true
+  disable:
+    - funlen
+    - execinquery
+    - gomnd
+    - gochecknoinits
+    - godox
+    - cyclop
+    - depguard
+    - lll
+    - exhaustruct
+    - ireturn
+    - nlreturn
+    - varnamelen
+    - gofumpt
+    - gci
+    - paralleltest
+    - revive
+    - canonicalheader
+    - gochecknoglobals
+    - mnd
+    - stylecheck
+    - wrapcheck
+    - err113
+
+linters-settings:
+  gofmt:
+    simplify: true

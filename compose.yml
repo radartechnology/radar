@@ -1,0 +1,21 @@
+services:
+  radar:
+    build: server
+    environment:
+      DATABASE_URL: postgres://radar:radar@database:5432/radar
+      WEBSOCKET_PORT: 1887
+      MAX_HUBS: 10
+      MAX_HUB_CLIENTS: 10
+    ports:
+      - "1887:1887"
+
+  database:
+    image: postgres:16.4-alpine3.20
+    environment:
+      POSTGRES_USER: radar
+      POSTGRES_PASSWORD: radar
+      POSTGRES_DB: radar
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"

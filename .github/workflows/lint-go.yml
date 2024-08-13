@@ -1,0 +1,40 @@
+name: lint go files
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/lint-go.yml
+      - 'server/*.go'
+      - 'server/go.mod'
+      - 'server/go.sum'
+
+jobs:
+  lint-server:
+    name: lint server
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4.1.7
+
+      - name: set up go
+        uses: actions/setup-go@v5.0.2
+        with:
+          go-version: 1.22.5
+          check-latest: true
+          cache: true
+          cache-dependency-path: server/go.mod
+
+      - name: set up sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.27.0
+
+      - name: generate sqlc
+        run: cd server && sqlc generate
+
+      - name: run golangci-lint
+        uses: golangci/golangci-lint-action@v6.1.0
+        with:
+          version: v1.59.1
+          args: --timeout 4m
+          working-directory: server
