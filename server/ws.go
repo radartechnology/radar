@@ -56,29 +56,15 @@ func newClient(hub *Hub, conn *websocket.Conn) (*Client, error) {
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request, isWriter bool, hashedToken string) {
 	log.SetPrefix(fmt.Sprintf("[%s] ", hub.id))
 
-	if len(hub.clients) >= maxHubClients {
-		log.Println("hub is full, rejecting connection")
-		w.WriteHeader(http.StatusServiceUnavailable)
-
-		return
-	}
-
-	if isWriter && hub.writer != nil {
-		log.Printf("writer already exists, rejecting connection")
-		w.WriteHeader(http.StatusConflict)
-
-		return
-	}
-
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("failed to upgrade connection: %v", err)
+		http.Error(w, fmt.Sprintf("failed to upgrade connection: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	client, err := newClient(hub, conn)
 	if err != nil {
-		log.Printf("failed to create client: %v", err)
+		http.Error(w, fmt.Sprintf("failed to create client: %v", err), http.StatusInternalServerError)
 		return
 	}
 

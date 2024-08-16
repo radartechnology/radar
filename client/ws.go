@@ -44,7 +44,7 @@ func getWsConn() *websocket.Conn {
 	}
 
 	log.Printf("connected to websocket: %s", u.String())
-	log.Printf("your session id is %s", session)
+	log.Printf("your radar link is http://radar.kidua.net?ip=%s.radar.technology", session)
 
 	return conn
 }

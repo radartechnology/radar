@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -14,7 +15,7 @@ var maxHubs, _ = strconv.Atoi(os.Getenv("MAX_HUBS"))
 var hubs = make(map[string]*Hub)
 
 func runHttpServer(port string) {
-	http.HandleFunc("/", wsHandler)
+	http.HandleFunc("/", handleHttp)
 
 	addr := fmt.Sprint(":", port)
 	log.Printf("listening on %s", addr)
@@ -26,76 +27,93 @@ func runHttpServer(port string) {
 		IdleTimeout:  pingPeriod,
 	}
 
-	err := srv.ListenAndServe()
-	if err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("failed to listen and serve: %v", err)
 	}
 }
 
-func wsHandler(w http.ResponseWriter, r *http.Request) {
+func handleHttp(w http.ResponseWriter, r *http.Request) {
 	session := r.Header.Get("session")
+
 	if session == "" {
-		http.Error(w, "session header required", http.StatusBadRequest)
-		return
+		session = getSubdomain(r)
+		if session == "" {
+			http.Error(w, "session required", http.StatusBadRequest)
+			return
+		}
 	}
 
 	parsed, err := uuid.Parse(session)
+
 	if err != nil {
-		http.Error(w, "invalid session header", http.StatusBadRequest)
+		http.Error(w, "invalid session", http.StatusBadRequest)
 		return
 	}
-
-	var hashedToken string
 
 	session = parsed.String()
+	var hub *Hub
 	token := r.Header.Get("authorization")
-
 	isWriter := false
+	var hashedToken string
 
 	if token != "" {
-		if len(hubs) >= maxHubs {
-			http.Error(w, "max hubs reached", http.StatusServiceUnavailable)
+		hub = checkToken(w, r, session, token)
+		if hub == nil {
 			return
 		}
-
-		exists := "writer already exists"
-
-		if _, ok := hubs[session]; ok {
-			http.Error(w, exists, http.StatusConflict)
-			return
-		}
-
-		hashedToken = hashToken(token)
-
-		for _, hub := range hubs {
-			if hub.writer != nil && hub.writer.token == hashedToken {
-				http.Error(w, exists, http.StatusConflict)
-				return
-			}
-		}
-
-		if !authenticate(r.Context(), w, hashedToken) {
-			return
-		}
-
-		hub := newHub(session)
-		hubs[session] = hub
-
-		go hub.run()
-
 		isWriter = true
-	}
+		hashedToken = hub.writer.token
+	} else {
+		hub, ok := hubs[session]
+		if !ok || hub == nil {
+			http.Error(w, "session not found", http.StatusNotFound)
+			return
+		}
 
-	hub, ok := hubs[session]
-	if !ok || hub == nil {
-		http.Error(w, "session not found", http.StatusNotFound)
-		return
-	}
+		if len(hub.clients) >= maxHubClients {
+			http.Error(w, "hub is full, rejecting connection", http.StatusServiceUnavailable)
+			return
+		}
 
-	if hashedToken == "" {
 		hashedToken = hashToken(token)
 	}
 
 	log.Printf("serving session %s", session)
 	serveWs(hub, w, r, isWriter, hashedToken)
+}
+
+func getSubdomain(r *http.Request) string {
+	host := r.Host
+	parts := strings.Split(host, ".")
+
+	if len(parts) > 2 {
+		return parts[0]
+	}
+
+	return ""
+}
+
+func checkToken(w http.ResponseWriter, r *http.Request, session string, token string) *Hub {
+	if len(hubs) >= maxHubs {
+		http.Error(w, "max hubs reached", http.StatusServiceUnavailable)
+		return nil
+	}
+
+	if _, ok := hubs[session]; ok {
+		http.Error(w, "writer already exists", http.StatusConflict)
+		return nil
+	}
+
+	hashedToken := hashToken(token)
+
+	if !authenticate(r.Context(), w, hashedToken) {
+		return nil
+	}
+
+	hub := newHub(session)
+	hubs[session] = hub
+
+	go hub.run()
+
+	return hub
 }
