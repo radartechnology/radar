@@ -27,7 +27,8 @@ func getPipe() net.Conn {
 	pipe, err := dialPipe()
 
 	for err != nil {
-		log.Fatalf("dial failed: %v", err)
+		log.Printf("dial failed: %v", err)
+		fatal()
 	}
 
 	log.Println("connected to data pipe")

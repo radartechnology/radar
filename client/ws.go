@@ -25,7 +25,8 @@ func getWsConn() *websocket.Conn {
 
 	id, err := uuid.NewV7()
 	if err != nil {
-		log.Fatalf("failed to generate uuid: %v", err)
+		log.Printf("failed to generate uuid: %v", err)
+		fatal()
 	}
 
 	session := id.String()
@@ -38,9 +39,11 @@ func getWsConn() *websocket.Conn {
 	conn, res, err := dialer.Dial(u.String(), header)
 
 	if err != nil {
+		log.Printf("failed to dial websocket: %v", err)
 		buf := make([]byte, 4096)
 		n, _ := res.Body.Read(buf)
-		log.Fatalf("websocket dial failed: %s", buf[:n])
+		log.Printf("websocket dial failed: %s", buf[:n])
+		fatal()
 	}
 
 	log.Printf("connected to websocket: %s", u.String())
