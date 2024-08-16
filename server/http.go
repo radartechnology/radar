@@ -56,8 +56,6 @@ func handleHttp(w http.ResponseWriter, r *http.Request) {
 
 	var hub *Hub
 
-	var hashedToken string
-
 	if token != "" {
 		hub = checkToken(w, r, session, token)
 		if hub == nil {
@@ -65,7 +63,6 @@ func handleHttp(w http.ResponseWriter, r *http.Request) {
 		}
 
 		isWriter = true
-		hashedToken = hub.writer.token
 	} else {
 		hub, ok := hubs[session]
 		if !ok || hub == nil {
@@ -77,12 +74,10 @@ func handleHttp(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "hub is full, rejecting connection", http.StatusServiceUnavailable)
 			return
 		}
-
-		hashedToken = hashToken(token)
 	}
 
 	log.Printf("serving session %s", session)
-	serveWs(hub, w, r, isWriter, hashedToken)
+	serveWs(hub, w, r, isWriter)
 }
 
 func getSubdomain(r *http.Request) string {

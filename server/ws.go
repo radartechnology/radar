@@ -32,11 +32,10 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	id    uuid.UUID
-	hub   *Hub
-	conn  *websocket.Conn
-	send  chan []byte
-	token string
+	id   uuid.UUID
+	hub  *Hub
+	conn *websocket.Conn
+	send chan []byte
 }
 
 func newClient(hub *Hub, conn *websocket.Conn) (*Client, error) {
@@ -53,7 +52,7 @@ func newClient(hub *Hub, conn *websocket.Conn) (*Client, error) {
 	}, nil
 }
 
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request, isWriter bool, hashedToken string) {
+func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request, isWriter bool) {
 	log.SetPrefix(fmt.Sprintf("[%s] ", hub.id))
 
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -70,7 +69,6 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request, isWriter bool, ha
 
 	if isWriter {
 		log.Printf("registering writer %s", client.id.String())
-		client.token = hashedToken
 		hub.writer = client
 
 		go client.read()
