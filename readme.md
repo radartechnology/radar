@@ -38,7 +38,7 @@ the client was only tested on windows 11, but it should work on windows 10 as we
 
 - download the latest client release from the [releases page](https://github.com/radartechnology/radar/releases/latest)
 - run the game and start the cheat
-- run the clientgit branch -M main
+- run the client
 - enter your api token
 - press enter
 - the client will automatically detect the game and connect to the radar server
