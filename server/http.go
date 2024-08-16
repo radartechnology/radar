@@ -51,9 +51,11 @@ func handleHttp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session = parsed.String()
-	var hub *Hub
 	token := r.Header.Get("authorization")
 	isWriter := false
+
+	var hub *Hub
+
 	var hashedToken string
 
 	if token != "" {
@@ -61,6 +63,7 @@ func handleHttp(w http.ResponseWriter, r *http.Request) {
 		if hub == nil {
 			return
 		}
+
 		isWriter = true
 		hashedToken = hub.writer.token
 	} else {
