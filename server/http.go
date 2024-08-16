@@ -52,7 +52,7 @@ func handleHttp(w http.ResponseWriter, r *http.Request) {
 
 	session = parsed.String()
 	token := r.Header.Get("authorization")
-	isWriter := false
+	isMaster := false
 
 	var hub *Hub
 
@@ -62,7 +62,7 @@ func handleHttp(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		isWriter = true
+		isMaster = true
 	} else {
 		candidate, ok := hubs[session]
 		if !ok || candidate == nil {
@@ -79,7 +79,7 @@ func handleHttp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("serving session %s", session)
-	serveWs(hub, w, r, isWriter)
+	serveWs(hub, w, r, isMaster)
 }
 
 func getSubdomain(r *http.Request) string {

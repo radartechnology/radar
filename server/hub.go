@@ -10,6 +10,7 @@ type Hub struct {
 	broadcast  chan []byte
 	register   chan *Client
 	unregister chan *Client
+	stop       chan bool
 	writer     *Client
 }
 
@@ -20,6 +21,7 @@ func newHub(session string) *Hub {
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
+		stop:       make(chan bool),
 		writer:     nil,
 	}
 }
@@ -33,6 +35,16 @@ func (h *Hub) run() {
 
 	for {
 		select {
+		case <-h.stop:
+			h.unregisterClient(h.writer)
+
+			for client := range h.clients {
+				h.unregisterClient(client)
+			}
+
+			delete(hubs, h.id)
+
+			return
 		case client := <-h.register:
 			h.clients[client] = true
 		case client := <-h.unregister:
@@ -44,20 +56,13 @@ func (h *Hub) run() {
 }
 
 func (h *Hub) unregisterClient(client *Client) {
-	if client.id == h.writer.id {
-		log.Printf("hub %s lost its writer, closing", h.id)
-		delete(hubs, h.id)
+	if _, ok := h.clients[client]; ok {
+		log.Printf("unregistering client %s", client.id.String())
+		client.close()
 
-		return
+		delete(h.clients, client)
+		close(client.send)
 	}
-
-	if _, ok := h.clients[client]; !ok {
-		return
-	}
-
-	delete(h.clients, client)
-	close(client.send)
-	log.Printf("unregistered client %s", client.id.String())
 }
 
 func (h *Hub) broadcastMessage(message []byte) {
