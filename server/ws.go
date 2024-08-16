@@ -53,8 +53,6 @@ func newClient(hub *Hub, conn *websocket.Conn) (*Client, error) {
 }
 
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request, isWriter bool) {
-	log.SetPrefix(fmt.Sprintf("[%s] ", hub.id))
-
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to upgrade connection: %v", err), http.StatusInternalServerError)
@@ -66,6 +64,8 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request, isWriter bool) {
 		http.Error(w, fmt.Sprintf("failed to create client: %v", err), http.StatusInternalServerError)
 		return
 	}
+
+	log.SetPrefix(fmt.Sprintf("[%s] ", hub.id))
 
 	if isWriter {
 		log.Printf("registering writer %s", client.id.String())

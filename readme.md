@@ -2,9 +2,24 @@
 
 this projects aims to provide a better way to share the kiduahook radar data with your friends.
 
+## how it works
+
+```mermaid
+flowchart TD
+    user("fa:fa-user-secret you")
+    server{"fa:fa-server radar server"} 
+    friend1(fa:fa-user friend 1)
+    friend2(fa:fa-user friend 2)
+    friend3(fa:fa-user friend 3)
+
+    user -- ssl encrypted --> server -- radar.kidua.net --> friend1
+    server -- radar.kidua.net --> friend2
+    server -- radar.kidua.net --> friend3
+```
+
 ## transparency
 
-the client amd server are open source and can be reviewed in this repository.
+the client and server are open source and can be reviewed in this repository.
 
 ## advantages over traditional radar sharing
 
@@ -28,10 +43,7 @@ the client was only tested on windows 11, but it should work on windows 10 as we
 - enter your api token
 - press enter
 - the client will automatically detect the game and connect to the radar server
-- open the [radar page](https://radar.kidua.net?ip=radar.technologies) in your browser
-- append `&session=<your session id>` to the url and check if the radar is working
-    - example: `https://radar.kidua.net?ip=radar.technology&session=0191438e-d86d-716d-bf3d-ae9f34cd2966`
-- send the url to your friends
+- send the url shown in the client window to your friends
 - enjoy the radar
 
 ## faq
