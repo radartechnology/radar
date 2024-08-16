@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/pkg/browser"
 	"log"
 	"net/http"
 	"net/url"
@@ -47,7 +49,9 @@ func getWsConn() *websocket.Conn {
 	}
 
 	log.Printf("connected to websocket: %s", u.String())
-	log.Printf("your radar link is http://radar.kidua.net?ip=%s.radar.technology", session)
+	link := fmt.Sprintf("http://radar.kidua.net?ip=%s.radar.technology", session)
+	log.Printf("your radar link is %s", link)
+	_ = browser.OpenURL(link)
 
 	return conn
 }
