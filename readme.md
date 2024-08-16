@@ -6,13 +6,13 @@ this projects aims to provide a better way to share the kiduahook radar data wit
 
 ```mermaid
 flowchart TD
-    user("fa:fa-user-secret you")
-    server{"fa:fa-server radar server"} 
-    friend1(fa:fa-user friend 1)
-    friend2(fa:fa-user friend 2)
-    friend3(fa:fa-user friend 3)
+    user("you")
+    server{"radar server"} 
+    friend1(friend 1)
+    friend2(friend 2)
+    friend3(friend 3)
 
-    user -- ssl encrypted --> server -- radar.kidua.net --> friend1
+    user -- vpn tunnel --> server -- radar.kidua.net --> friend1
     server -- radar.kidua.net --> friend2
     server -- radar.kidua.net --> friend3
 ```
@@ -25,7 +25,6 @@ the client and server are open source and can be reviewed in this repository.
 
 - no ip sharing
 - no need to port forward
-- all data is streamed encrypted by ssl
 - session based access
 
 ## prerequisites

@@ -64,16 +64,18 @@ func handleHttp(w http.ResponseWriter, r *http.Request) {
 
 		isWriter = true
 	} else {
-		hub, ok := hubs[session]
-		if !ok || hub == nil {
+		candidate, ok := hubs[session]
+		if !ok || candidate == nil {
 			http.Error(w, "session not found", http.StatusNotFound)
 			return
 		}
 
-		if len(hub.clients) >= maxHubClients {
+		if len(candidate.clients) >= maxHubClients {
 			http.Error(w, "hub is full, rejecting connection", http.StatusServiceUnavailable)
 			return
 		}
+
+		hub = candidate
 	}
 
 	log.Printf("serving session %s", session)

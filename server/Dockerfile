@@ -1,6 +1,13 @@
-FROM golang:1.22.6-alpine3.20 AS build
+FROM sqlc/sqlc:1.27.0 AS sqlc
 
-RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.27.0
+WORKDIR /app
+
+COPY migrations ./migrations
+COPY query.sql sqlc.yml ./
+
+RUN ["/workspace/sqlc", "generate"]
+
+FROM golang:1.22.6-alpine3.20 AS build
 
 WORKDIR /app
 
@@ -10,7 +17,7 @@ RUN go mod download
 
 COPY . .
 
-RUN sqlc generate
+COPY --from=sqlc /app/db /app/db
 
 RUN go build -o /server
 

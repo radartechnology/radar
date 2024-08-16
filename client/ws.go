@@ -18,7 +18,7 @@ func getWsConn() *websocket.Conn {
 		}
 	}
 
-	u := url.URL{Scheme: "wss", Host: *serverAddress, Path: "/"}
+	u := url.URL{Scheme: "ws", Host: *serverAddress, Path: "/"}
 
 	header := http.Header{}
 	header.Add("authorization", token)

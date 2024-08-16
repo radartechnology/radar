@@ -15,6 +15,12 @@ import (
 func migrateDatabase() {
 	m, err := migrate.New("file://./migrations", "pgx5"+getDbUrl()[8:])
 
+	defer func(m *migrate.Migrate) {
+		if err, _ = m.Close(); err != nil {
+			log.Fatalf("failed to close migration: %v", err)
+		}
+	}(m)
+
 	if err != nil {
 		log.Fatalf("failed to create migration: %v", err)
 	}
@@ -22,12 +28,6 @@ func migrateDatabase() {
 	if err = m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		log.Fatalf("failed to apply migration: %v", err)
 	}
-
-	defer func(m *migrate.Migrate) {
-		if err, _ = m.Close(); err != nil {
-			log.Fatalf("failed to close migration: %v", err)
-		}
-	}(m)
 }
 
 func getDbUrl() string {
