@@ -11,3 +11,11 @@ check: ## run quality tools for the server
 	cd server && perfsprint --fix ./... # for some reason golangci-lint does not fix all issues
 	cd server && wsl --fix ./...
 	cd server && golangci-lint run
+
+.PHONY: start
+start: ## start containers
+	docker compose up -d --build --force-recreate --remove-orphans
+
+.PHONY: stop
+stop: ## stop containers
+	docker compose down

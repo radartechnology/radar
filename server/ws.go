@@ -17,7 +17,7 @@ import (
 var maxHubClients, _ = strconv.Atoi(os.Getenv("MAX_HUB_CLIENTS"))
 
 const (
-	pingPeriod = 250 * time.Millisecond
+	pingPeriod = 3 * time.Second
 	bufSize    = 4096
 )
 
@@ -147,6 +147,7 @@ func (c *Client) read() {
 	log.Println("starting read worker")
 
 	for {
+		_ = c.conn.SetReadDeadline(time.Now().Add(pingPeriod))
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			log.Printf("failed to read message: %v", err)
