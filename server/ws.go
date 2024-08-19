@@ -149,6 +149,7 @@ func (c *Client) read() {
 	for {
 		_ = c.conn.SetReadDeadline(time.Now().Add(pingPeriod))
 		_, message, err := c.conn.ReadMessage()
+
 		if err != nil {
 			log.Printf("failed to read message: %v", err)
 			break
