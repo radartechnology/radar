@@ -32,10 +32,11 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	id   uuid.UUID
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
+	id        uuid.UUID
+	hub       *Hub
+	conn      *websocket.Conn
+	send      chan []byte
+	nextWrite time.Time
 }
 
 func newClient(hub *Hub, conn *websocket.Conn) (*Client, error) {
@@ -106,7 +107,16 @@ func (c *Client) close() {
 	log.Printf("successfully closed connection and stopped worker")
 }
 
+const (
+	pps      = 60
+	ppsLimit = time.Second / pps
+)
+
 func sendMessage(c *Client) error {
+	if !c.nextWrite.After(time.Now()) {
+		return nil
+	}
+
 	message, ok := <-c.send
 	_ = c.conn.SetWriteDeadline(time.Now().Add(pingPeriod))
 
@@ -133,6 +143,8 @@ func sendMessage(c *Client) error {
 
 	message = bytes.TrimSpace(message)
 	_, err = w.Write(message)
+
+	c.nextWrite = time.Now().Add(ppsLimit)
 
 	return err
 }
