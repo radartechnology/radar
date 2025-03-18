@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 )
 
 type Hub struct {
@@ -12,6 +13,7 @@ type Hub struct {
 	unregister chan *Client
 	stop       chan bool
 	writer     *Client
+	lastWrite  time.Time
 }
 
 func newHub(session string) *Hub {
