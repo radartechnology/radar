@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net"
+	"time"
 )
 
 // todo: check if this changes
@@ -40,6 +41,11 @@ func dialPipe() (net.Conn, error) {
 	return winio.DialPipeAccess(context.Background(), pipeName, 1)
 }
 
+const (
+	pps      = 60
+	ppsLimit = time.Second / pps
+)
+
 func write(conn *websocket.Conn, pipe net.Conn) {
 	defer func(conn *websocket.Conn) {
 		err := conn.Close()
@@ -62,5 +68,6 @@ func write(conn *websocket.Conn, pipe net.Conn) {
 			log.Printf("write to websocket failed: %v", err)
 			break
 		}
+		time.Sleep(ppsLimit)
 	}
 }
