@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net"
+	"time"
 )
 
 // todo: check if this changes
@@ -62,5 +63,6 @@ func write(conn *websocket.Conn, pipe net.Conn) {
 			log.Printf("write to websocket failed: %v", err)
 			break
 		}
+		time.Sleep(16 * time.Millisecond)
 	}
 }
